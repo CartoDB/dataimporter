@@ -50,7 +50,7 @@ class DotCartoForm(FlaskForm):
     carto_api_endpoint = StringField("CARTO username", validators=[DataRequired()], description="Your CARTO username.")
     carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile')
     the_csv = FileField("Upload .csv file", validators=[FileRequired(), FileAllowed(["csv"], ".csv files only!")], description=".csv to be imported")
-    row_limit = IntegerField("Account row limit", default=500) # widget=NumberInput()
+    row_limit = IntegerField("Account row limit", default=600) # widget=NumberInput()
 
 @app.route("/", methods=["GET", "POST"])
 def index():

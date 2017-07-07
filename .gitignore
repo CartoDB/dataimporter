@@ -2,3 +2,10 @@
 *env/
 *.pyc
 *.conf
+*.pyc
+
+*.pyc
+
+dotcarto.pyc
+
+webui.pyc
