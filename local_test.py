@@ -1,6 +1,6 @@
 import csv
 
-def reorderLatLng(inValue): 
+def reorderLatLng(inValue):
     listCoords = []
     for i in inValue.split(','):
         i = i.replace('((','').replace('))','').replace('POLYGON','')

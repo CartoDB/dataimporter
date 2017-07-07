@@ -26,7 +26,8 @@
                         {{ form.csrf_token }}
                         {{ render_field(form.carto_api_endpoint) }}
                         {{ render_field(form.carto_api_key) }}
-                        {{ render_field(form.ninth_decimal_csv) }}
+                        {{ render_field(form.the_csv) }}
+                        {{ render_field(form.row_limit) }}
                         <input type="submit" class="btn btn-primary" value="Submit" />
                     </form>
                     <pre><code>{{result}}</pre></code>

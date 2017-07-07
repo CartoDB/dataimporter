@@ -1,0 +1,16 @@
+User sends a .csv
+
+read file
+
+  if file is .csv
+    .csv is read
+
+    .csv lines are counted
+
+    if len of lines below 400000:
+      import file as-is
+
+    elif
+
+  else:
+    error 'your file is not a .csv' 

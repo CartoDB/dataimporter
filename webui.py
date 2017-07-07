@@ -7,10 +7,10 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 from flask_wtf.csrf import CsrfProtect
 from flask import Flask, send_file, render_template
 from werkzeug.utils import secure_filename
-from wtforms import StringField
+from wtforms import StringField, IntegerField
 from wtforms.validators import DataRequired
 # from dotcarto import DotCartoFile
-# from dataimporter import # cleanNinthDecimal
+from dataimporter import readFileImport
 
 
 class Config(object):
@@ -47,10 +47,10 @@ CsrfProtect(app)
 
 
 class DotCartoForm(FlaskForm):
-    carto_api_endpoint = StringField("CARTO Username", validators=[DataRequired()], description="Your CARTO username.")
+    carto_api_endpoint = StringField("CARTO username", validators=[DataRequired()], description="Your CARTO username.")
     carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile')
-    ninth_decimal_csv = FileField("Upload .csv file", validators=[FileRequired(), FileAllowed(["csv"], ".csv files only!")], description=".csv to be imported")
-
+    the_csv = FileField("Upload .csv file", validators=[FileRequired(), FileAllowed(["csv"], ".csv files only!")], description=".csv to be imported")
+    row_limit = IntegerField("Account row limit", default=500) # widget=NumberInput()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -58,7 +58,7 @@ def index():
     importer = None
     if form.validate_on_submit():
 
-        importer = cleanNinthDecimal(form.ninth_decimal_csv.data.stream, form.ninth_decimal_csv.data.filename, form.carto_api_endpoint.data, form.carto_api_key.data)
+        importer = readFileImport(form.the_csv.data.stream, form.the_csv.data.filename, form.carto_api_endpoint.data, form.carto_api_key.data, form.row_limit.data)
 
     return render_template("index.html", form=form, result=[str(importer)])
 

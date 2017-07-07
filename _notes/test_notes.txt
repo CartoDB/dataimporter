@@ -1,0 +1,14 @@
+# Tests
+
+
+1. read non .csv file
+  error
+2. read csv with < 400,000
+  a. is carto table there
+  b. is it the correct N
+3. read csv with > 600,000
+  a. is carto table there
+  b. is it the correct N
+4. read csv with > 1,500,000
+  a. is carto table there
+  b. is it the correct N
