@@ -5,8 +5,8 @@ import os
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from flask_wtf.csrf import CsrfProtect
-from flask import Flask, send_file, render_template
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template  # send_file,
+# from werkzeug.utils import secure_filename
 from wtforms import StringField, IntegerField
 from wtforms.validators import DataRequired
 # from dotcarto import DotCartoFile
