@@ -1,3 +1,0 @@
-[webui]
-debug=1
-secret_key=RANDOM_KEY_FOR_SESSION_MANAGEMENT
