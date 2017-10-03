@@ -1,3 +1,7 @@
+.cache/
+.eggs/
+*.log
+*egg-info/
 *data/
 *env/
 *.pyc

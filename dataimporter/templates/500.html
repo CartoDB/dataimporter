@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+<title>Server error</title>
+{% block body %}
+    {% if error %}
+      <h1>Server error: {{ error }}!</h1>
+    {% else %}
+      <h1>Unknown error...</h1>
+    {% endif %}
+{% endblock %}
