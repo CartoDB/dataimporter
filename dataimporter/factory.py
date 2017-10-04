@@ -9,6 +9,7 @@
 
 # import os
 from flask import Flask, g
+from flask_wtf.csrf import CsrfProtect
 from werkzeug.utils import find_modules, import_string
 # from dataimporter.blueprints.dataimporter import init_db
 
@@ -19,10 +20,13 @@ def create_app(config=None):
     app.config.update(dict(
         SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/',
         USERNAME='admin',
-        PASSWORD='default'
+        PASSWORD='default',
+        UPLOAD_FOLDER='/tmp',
+        ALLOWED_EXTENSIONS=['csv']
     ))
     app.config.update(config or {})
     app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+    CsrfProtect(app)
 
     register_blueprints(app)
     # register_cli(app)
@@ -35,7 +39,7 @@ def register_blueprints(app):
     """Register all blueprint modules
     Reference: Armin Ronacher, "Flask for Fun and for Profit" PyBay 2016.
     """
-    for name in find_modules('dataimporter.blueprints'):
+    for name in find_modules('dataimporter.blueprints.dataimporter'):
         mod = import_string(name)
         if hasattr(mod, 'bp'):
             app.register_blueprint(mod.bp)
