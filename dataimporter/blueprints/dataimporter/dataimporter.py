@@ -1,6 +1,6 @@
 from io import TextIOWrapper
 from flask import Blueprint, request, session, g, redirect, url_for, abort, \
-     render_template, flash, current_app, send_from_directory
+     render_template, flash, current_app, send_from_directory, jsonify
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
@@ -8,26 +8,27 @@ from wtforms import StringField, IntegerField, BooleanField
 from wtforms.validators import DataRequired
 
 from etl.etl import InsertJob
+from .tasks.import_worker import long_task
 
 
 # create our blueprint :)
 bp = Blueprint('dataimporter', __name__, static_folder='static', template_folder='templates', static_url_path='/static/dataimporter')
 
 class ImportForm(FlaskForm):
-    carto_base_url = StringField("CARTO base URL", validators=[DataRequired()], description="Example: https://aromeu.carto.com/")
-    carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile')
-    carto_table_name = StringField("CARTO dataset name", validators=[DataRequired()], description="Name of the target dataset in CARTO (it has to exist)")
+    carto_base_url = StringField("CARTO base URL", validators=[DataRequired()], description="Example: https://aromeu.carto.com/", default="https://aromeu.carto.com/")
+    carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile', default="c4faca161957ce0bcee88d91f58d3f68a3462b57")
+    carto_table_name = StringField("CARTO dataset name", validators=[DataRequired()], description="Name of the target dataset in CARTO (it has to exist)", default="sample_1")
     carto_delimiter = StringField("CSV character delimiter", validators=[DataRequired()], description="Character used as delimiter in the CSV file, tipycally a comma", default=",")
-    carto_columns = StringField("Columns of the CSV file", validators=[DataRequired()], description="Comma separated list of columns of the CSV file that will be transferred to CARTO")
+    carto_columns = StringField("Columns of the CSV file", validators=[DataRequired()], description="Comma separated list of columns of the CSV file that will be transferred to CARTO", default="mes,provincia,total_suministros,clientes_telegestion,telegestion,porcentaje,created_at,updated_at,the_geom")
     carto_date_columns = StringField("Date columns of the CSV file", description="Comma separated list of columns of the CSV file that represent a date or timestamp and have a different format than the CARTO date format (%Y-%m-%d %H:%M:%S+00), so that they need to be transformed. If this field is set, then either `date_format` or `datetime_format` must be properly set to indicate the format of the `date_columns` in the CSV file")
-    carto_x_column = StringField("X column", description="Name of the column that contains the x coordinate", default="lon")
-    carto_y_column = StringField("Y column", description="Name of the column that contains the y coordinate", default="lat")
+    carto_x_column = StringField("X column", description="Name of the column that contains the x coordinate", default="")
+    carto_y_column = StringField("Y column", description="Name of the column that contains the y coordinate", default="")
     carto_srid = IntegerField("SRID", description="The SRID of the coordinates in the CSV file", default=4326)
     etl_chunk_size = IntegerField("Chunk size", validators=[DataRequired()], description="Number of items to be grouped on a single INSERT or DELETE request. POST requests can deal with several MBs of data (i.e. characters), so this number can go quite high if you wish", default=10000)
     etl_max_attempts = IntegerField("Max. attempts", validators=[DataRequired()], description="Number of attempts before giving up on a API request to CARTO", default=3)
     etl_file_encoding = StringField("CSV file encoding", validators=[DataRequired()], description="Encoding of the file. By default it's `utf-8`, if your file contains accents or it's in spanish it may be `ISO-8859-1`", default="utf-8")
     etl_force_no_geometry = BooleanField("CSV without geometry", description="Check this if your destination table does not have a geometry column", default="false")
-    etl_force_the_geom = StringField("The geometry column name", description="Indicate the name of the geometry column in the CSV file in case it's an hexstring value that has to be inserted directly into PostGIS")
+    etl_force_the_geom = StringField("The geometry column name", description="Indicate the name of the geometry column in the CSV file in case it's an hexstring value that has to be inserted directly into PostGIS", default="the_geom")
     etl_date_format = StringField("Date format", description="Format of the `date_columns` expressed in the `datetime` Python module supported formats")
     etl_datetime_format = StringField("DateTime format", description="Format of the `date_columns` in case they are timestamps expressed in the `datetime` Python module supported formats")
     etl_float_comma_separator = StringField("Number comma separator", description="Character used as comma separator in float columns", default=".")
@@ -110,6 +111,7 @@ def upload_file():
     form = ImportForm()
     importer = None
     if form.validate_on_submit():
+        import ipdb; ipdb.set_trace(context=30)
         importer = ImportWorker(form.the_csv.data.stream, form.the_csv.data.filename, form.carto_base_url.data, form.carto_api_key.data,table_name=form.carto_table_name.data,
             delimiter=form.carto_delimiter.data,
             columns=form.carto_columns.data,
@@ -156,12 +158,43 @@ def uploaded_file(filename):
 @bp.route('/')
 def hello_world():
     current_app.logger.warn('warn message')
-    flash('fuck you')
+    flash('.............')
     return redirect(url_for('.hello'))
 
-@bp.route('/projects/')
+@bp.route('/projects', methods=['GET'])
 def projects():
-    return 'The project page'
+    task = long_task.apply_async()
+    return jsonify({}), 202, {'Location': url_for('dataimporter.project_status',
+                                                  taskid=task.id)}
+
+@bp.route('/projects/<taskid>', methods=['GET'])
+def project_status(taskid):
+    task = long_task.AsyncResult(taskid)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return jsonify(response)
 
 @bp.route('/about')
 def about():

@@ -8,13 +8,14 @@
 """
 
 # import os
+from celery import Celery
 from flask import Flask, g
 from flask_wtf.csrf import CsrfProtect
 from werkzeug.utils import find_modules, import_string
 # from dataimporter.blueprints.dataimporter import init_db
 
 
-def create_app(config=None):
+def create_app(config=None, blueprints=True):
     app = Flask(__name__)
 
     app.config.update(dict(
@@ -22,13 +23,16 @@ def create_app(config=None):
         USERNAME='admin',
         PASSWORD='default',
         UPLOAD_FOLDER='/tmp',
-        ALLOWED_EXTENSIONS=['csv']
+        ALLOWED_EXTENSIONS=['csv'],
+        CELERY_BROKER_URL='redis://localhost:6379/0',
+        CELERY_RESULT_BACKEND='redis://localhost:6379/0'
     ))
     app.config.update(config or {})
     app.config.from_envvar('FLASKR_SETTINGS', silent=True)
     CsrfProtect(app)
 
-    register_blueprints(app)
+    if blueprints:
+        register_blueprints(app)
     # register_cli(app)
     # register_teardowns(app)
 
@@ -44,6 +48,19 @@ def register_blueprints(app):
         if hasattr(mod, 'bp'):
             app.register_blueprint(mod.bp)
     return None
+
+
+def create_celery(app):
+    celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'], backend=app.config['CELERY_RESULT_BACKEND'])
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    return celery
 
 
 # def register_cli(app):

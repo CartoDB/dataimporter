@@ -1,6 +1,6 @@
 from dataimporter.factory import create_app
 
-app = create_app()
+app = create_app(blueprints=True)
 
 if not app.debug:
     import logging

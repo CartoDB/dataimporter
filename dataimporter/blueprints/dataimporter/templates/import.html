@@ -1,11 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
+<script src="{{ url_for('dataimporter.static', filename='import.js') }}"></script>
+<script src="{{ url_for('dataimporter.static', filename='progressbar.min.js') }}"></script>
 <div class="container">
     <h1>CARTO data importer</h1>
     <div class="alert alert-warning" role="alert">
         <p>This tool is for importing into CARTO using the carto-etl Python library</p>
     </div>
-    <div class="row">
+    <div class="row conf">
         <div class="col-md-6 col-md-offset-3">
             {% from "_formhelpers.html" import render_field %}
             <form method="POST" enctype="multipart/form-data">
@@ -31,7 +33,6 @@
                 {{ render_field(form.the_csv) }}
                 <input type="submit" class="btn btn-primary right" value="Submit" />
             </form>
-            {{result}}
         </div>
     </div>
 </div>
