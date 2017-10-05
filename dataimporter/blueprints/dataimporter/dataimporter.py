@@ -16,7 +16,7 @@ bp = Blueprint('dataimporter', __name__, static_folder='static', template_folder
 
 class ImportForm(FlaskForm):
     carto_base_url = StringField("CARTO base URL", validators=[DataRequired()], description="Example: https://aromeu.carto.com/", default="https://aromeu.carto.com/")
-    carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile', default="c4faca161957ce0bcee88d91f58d3f68a3462b57")
+    carto_api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile', default="")
     carto_table_name = StringField("CARTO dataset name", validators=[DataRequired()], description="Name of the target dataset in CARTO (it has to exist)", default="sample_1")
     carto_delimiter = StringField("CSV character delimiter", validators=[DataRequired()], description="Character used as delimiter in the CSV file, tipycally a comma", default=",")
     carto_columns = StringField("Columns of the CSV file", validators=[DataRequired()], description="Comma separated list of columns of the CSV file that will be transferred to CARTO", default="mes,provincia,total_suministros,clientes_telegestion,telegestion,porcentaje,created_at,updated_at,the_geom")
@@ -131,30 +131,6 @@ def upload_file():
         importer.run()
     return render_template("import.html", form=form, result=[str(importer)])
 
-    # if request.method == 'POST':
-    #     # check if the post request has the file part
-    #     if 'file' not in request.files:
-    #         flash('No file part')
-    #         return redirect(request.url)
-    #     file = request.files['file']
-    #     # if user does not select file, browser also
-    #     # submit a empty part without filename
-    #     if file.filename == '':
-    #         flash('No selected file')
-    #         return redirect(request.url)
-    #     if file and allowed_file(file.filename):
-    #         filename = secure_filename(file.filename)
-    #         file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-    #         return redirect(url_for('uploaded_file',
-    #                                 filename=filename))
-    # print('get')
-    # return render_template('import.html')
-
-@bp.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'],
-                               filename)
-
 @bp.route('/')
 def hello_world():
     current_app.logger.warn('warn message')
@@ -196,17 +172,6 @@ def project_status(taskid):
         }
     return jsonify(response)
 
-@bp.route('/about')
-def about():
-    return 'The about page'
-
-@bp.route('/hello/')
-@bp.route('/hello/<name>')
-def hello(name=None):
-    if name == 'motherfucker':
-        return server_error('{name} is not allowed'.format(name=name))
-    return render_template('hello.html', name=name)
-
 @bp.app_errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
@@ -214,7 +179,3 @@ def page_not_found(error):
 @bp.app_errorhandler(500)
 def server_error(error):
     return render_template('500.html', error=error), 500
-
-@bp.route('/error')
-def error():
-    abort(401)
