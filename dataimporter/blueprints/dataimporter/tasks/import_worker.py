@@ -4,6 +4,8 @@ from itertools import chain
 from time import sleep
 from ....factory import create_app, create_celery
 
+from etl.etl import InsertJob
+
 app = create_app(blueprints=False)
 celery = create_celery(app)
 
@@ -26,3 +28,44 @@ def long_task(self):
         time.sleep(1)
     return {'current': 100, 'total': 100, 'status': 'Task completed!',
             'result': 42}
+
+class ImportWorker(object):
+    def __init__(self, *args, **kwargs):
+        self.total = 0
+        self.csv_file_name = args[1]
+        self.task = kwargs['task']
+        kwargs['observer'] = self.observe
+
+        self.job = InsertJob(args[0], **kwargs)
+
+    def run(self):
+        self.job.run()
+
+    def observe(self, message):
+        method = getattr(self, message['type'], None)
+        if callable(method):
+            method(message['msg'])
+
+    def total_rows(self, rows):
+        self.total = rows
+        self.task.update_state(state='PROGRESS',
+                          meta={'current': 0, 'total': self.total,
+                                'status': 'running'})
+
+    def progress(self, rows):
+        self.task.update_state(state='PROGRESS',
+                          meta={'current': rows, 'total': self.total,
+                                'status': 'running'})
+
+    def error(self, error_message):
+        self.task.update_state(state='FAILURE',
+                          meta={'current': 0, 'total': self.total, 'status': error_message})
+
+
+@celery.task(bind=True)
+def insert_task(self, *args, **kwargs):
+    kwargs['task'] = self
+    import_worker = ImportWorker(*args, **kwargs)
+    import_worker.run()
+    return {'current': 100, 'total': 100, 'status': 'Task completed!',
+            'result': 'completed'}

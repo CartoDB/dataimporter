@@ -12,25 +12,25 @@
             {% from "_formhelpers.html" import render_field %}
             <form method="POST" enctype="multipart/form-data">
                 {{ form.csrf_token }}
-                {{ render_field(form.carto_base_url) }}
-                {{ render_field(form.carto_api_key) }}
-                {{ render_field(form.carto_table_name) }}
-                {{ render_field(form.carto_delimiter) }}
-                {{ render_field(form.carto_columns) }}
-                {{ render_field(form.carto_date_columns) }}
-                {{ render_field(form.carto_x_column) }}
-                {{ render_field(form.carto_y_column) }}
-                {{ render_field(form.carto_srid) }}
-                {{ render_field(form.etl_chunk_size) }}
-                {{ render_field(form.etl_max_attempts) }}
-                {{ render_field(form.etl_file_encoding) }}
-                {{ render_field(form.etl_force_no_geometry) }}
-                {{ render_field(form.etl_force_the_geom) }}
-                {{ render_field(form.etl_date_format) }}
-                {{ render_field(form.etl_datetime_format) }}
-                {{ render_field(form.etl_float_comma_separator) }}
-                {{ render_field(form.etl_float_thousand_separator) }}
-                {{ render_field(form.the_csv) }}
+                {{ render_field(form.base_url) }}
+                {{ render_field(form.api_key) }}
+                {{ render_field(form.table_name) }}
+                {{ render_field(form.delimiter) }}
+                {{ render_field(form.columns) }}
+                {{ render_field(form.date_columns) }}
+                {{ render_field(form.x_column) }}
+                {{ render_field(form.y_column) }}
+                {{ render_field(form.srid) }}
+                {{ render_field(form.chunk_size) }}
+                {{ render_field(form.max_attempts) }}
+                {{ render_field(form.file_encoding) }}
+                {{ render_field(form.force_no_geometry) }}
+                {{ render_field(form.force_the_geom) }}
+                {{ render_field(form.date_format) }}
+                {{ render_field(form.datetime_format) }}
+                {{ render_field(form.float_comma_separator) }}
+                {{ render_field(form.float_thousand_separator) }}
+                {{ render_field(form.csv_file) }}
                 <input type="submit" class="btn btn-primary right" value="Submit" />
             </form>
         </div>

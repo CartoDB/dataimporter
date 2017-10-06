@@ -1,17 +1,42 @@
 (function($) {
     $(document).ready(() => {
         var bars =   {};
+        var texts = {
+            'start-upload': 'Uploading file, please don\'t close the browser window until it finishes',
+            'start-import': 'Importing data, now it\'s safe to close the browser window',
+            'import-completed': 'Import completed',
+            'error': 'Error while importing: '
+        };
 
         function progressHandlingFunction(e) {
             if (e.lengthComputable) {
-                console.log(e.loaded);
                 var progress = e.loaded / e.total;
-                bars['pb-container'].animate(progress);
+                createProgressBar('pb-container').animate(progress);
             }
         };
 
-        function createProgressBar(containerId) {
+        function updateMessage(containerId, text) {
+            if (text) {
+                $('#' + containerId).closest('.pb').find('.pb-info').text(text);
+            }
+        };
+
+        function resetProgressBar(containerId) {
+            if (bars[containerId]) {
+                bars[containerId].animate(0);
+            }
+        };
+
+        function createProgressBar(containerId, text) {
+            if (bars[containerId]) {
+                updateMessage(containerId, text);
+                return bars[containerId];
+            }
+
+            var message = text || '';
+
             var template = '<div class="row pb">' +
+                '<span class="pb-info">' + message + '</span>' +
                 '<div class= "pb-container" id="' + containerId + '"></div>' +
                 '</div>';
             $('.row.conf').after($(template).clone());
@@ -47,6 +72,30 @@
             return bar;
         };
 
+        function update_progress(status_url, containerId) {
+            $.getJSON(status_url, function(data) {
+                // update UI
+                progress = parseFloat(data['current'], 10) / parseFloat(data['total'], 10);
+                createProgressBar(containerId, texts['start-import']).animate(progress);
+                updateMessage(containerId, texts['start-import']);
+
+                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+                    if ('result' in data) {
+                        // show result
+                        updateMessage(containerId, texts['import-completed']);
+                    } else {
+                        // something unexpected happened
+                        updateMessage(containerId, texts['error'] + data['status']);
+                    }
+                } else {
+                    // rerun in 2 seconds
+                    setTimeout(function() {
+                        update_progress(status_url, containerId);
+                    }, 2000);
+                }
+            });
+        };
+
         $(document).on('submit', 'form', (event) => {
             event.preventDefault();
             var $form = $('form');
@@ -54,7 +103,8 @@
             var csrfToken = $form.find('#csrf_token').val();
 
             var containerId = 'pb-container';
-            bars[containerId] = createProgressBar(containerId);
+            bars[containerId] = createProgressBar(containerId, texts['start-upload']);
+            resetProgressBar(containerId)
 
             $.ajaxSetup({
                 beforeSend: function(xhr, settings) {
@@ -91,10 +141,10 @@
                 // async: false,
                 processData: false,
                 contentType: false,
-                success: function(response) {
-                    // console.log(response);
-                    // window.location.reload(true);
-
+                success: function(data, status, request) {
+                    status_url = request.getResponseHeader('Location');
+                    resetProgressBar(containerId);
+                    update_progress(status_url, containerId);
                 }
             });
             return false;
