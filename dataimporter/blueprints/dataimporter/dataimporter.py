@@ -17,7 +17,7 @@ bp = Blueprint('dataimporter', __name__, static_folder='static', template_folder
 
 class ImportForm(FlaskForm):
     base_url = StringField("CARTO base URL", validators=[DataRequired()], description="Example: https://aromeu.carto.com/", default="https://aromeu.carto.com/")
-    api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile', default="424dec8b179567aace6ef7b229c9afa1d78d68e7")
+    api_key = StringField("CARTO API key", validators=[DataRequired()], description='Found on the "Your API keys" section of your user profile', default="")
     table_name = StringField("CARTO dataset name", validators=[DataRequired()], description="Name of the target dataset in CARTO (it has to exist)", default="sample_1")
     delimiter = StringField("CSV character delimiter", validators=[DataRequired()], description="Character used as delimiter in the CSV file, tipycally a comma", default=",")
     columns = StringField("Columns of the CSV file", validators=[DataRequired()], description="Comma separated list of columns of the CSV file that will be transferred to CARTO", default="mes,provincia,total_suministros,clientes_telegestion,telegestion,porcentaje,created_at,updated_at")

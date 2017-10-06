@@ -72,7 +72,7 @@
             return bar;
         };
 
-        function update_progress(status_url, containerId) {
+        function updateProgress(status_url, containerId) {
             $.getJSON(status_url, function(data) {
                 // update UI
                 progress = parseFloat(data['current'], 10) / parseFloat(data['total'], 10);
@@ -90,7 +90,7 @@
                 } else {
                     // rerun in 2 seconds
                     setTimeout(function() {
-                        update_progress(status_url, containerId);
+                        updateProgress(status_url, containerId);
                     }, 2000);
                 }
             });
@@ -144,7 +144,10 @@
                 success: function(data, status, request) {
                     status_url = request.getResponseHeader('Location');
                     resetProgressBar(containerId);
-                    update_progress(status_url, containerId);
+                    updateProgress(status_url, containerId);
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    updateMessage('Error ' + thrownError);
                 }
             });
             return false;
