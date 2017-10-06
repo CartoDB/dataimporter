@@ -22,7 +22,7 @@ def create_app(config=None, blueprints=True):
         SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/',
         USERNAME='admin',
         PASSWORD='default',
-        UPLOAD_FOLDER='/tmp',
+        UPLOAD_FOLDER='/app',
         ALLOWED_EXTENSIONS=['csv'],
         CELERY_BROKER_URL='redis://localhost:6379/0',
         CELERY_RESULT_BACKEND='redis://localhost:6379/0'
