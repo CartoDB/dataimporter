@@ -1,15 +1,11 @@
-from io import TextIOWrapper
-import os
-from flask import Blueprint, request, session, g, redirect, url_for, abort, \
-     render_template, flash, current_app, send_from_directory, jsonify
+from flask import Blueprint, request, url_for, render_template, current_app, jsonify
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 from wtforms import StringField, IntegerField, BooleanField
 from wtforms.validators import DataRequired
 
-from .tasks.import_worker import long_task
-from .tasks.import_worker import insert_task
+from .tasks.import_worker import insert_task, create_file_name, get_running_tasks
 
 
 # create our blueprint :)
@@ -25,10 +21,10 @@ class ImportForm(FlaskForm):
     x_column = StringField("X column", description="Name of the column that contains the x coordinate", default="")
     y_column = StringField("Y column", description="Name of the column that contains the y coordinate", default="")
     srid = IntegerField("SRID", description="The SRID of the coordinates in the CSV file", default=4326)
-    chunk_size = IntegerField("Chunk size", validators=[DataRequired()], description="Number of items to be grouped on a single INSERT or DELETE request. POST requests can deal with several MBs of data (i.e. characters), so this number can go quite high if you wish", default=10000)
+    chunk_size = IntegerField("Chunk size", validators=[DataRequired()], description="Number of items to be grouped on a single INSERT or DELETE request. POST requests can deal with several MBs of data (i.e. characters), so this number can go quite high if you wish", default=100)
     max_attempts = IntegerField("Max. attempts", validators=[DataRequired()], description="Number of attempts before giving up on a API request to CARTO", default=3)
     file_encoding = StringField("CSV file encoding", validators=[DataRequired()], description="Encoding of the file. By default it's `utf-8`, if your file contains accents or it's in spanish it may be `ISO-8859-1`", default="utf-8")
-    force_no_geometry = BooleanField("CSV without geometry", description="Check this if your destination table does not have a geometry column", default="false")
+    force_no_geometry = BooleanField("CSV without geometry", description="Check this if your destination table does not have a geometry column", default=False)
     force_the_geom = StringField("The geometry column name", description="Indicate the name of the geometry column in the CSV file in case it's an hexstring value that has to be inserted directly into PostGIS", default="the_geom")
     date_format = StringField("Date format", description="Format of the `date_columns` expressed in the `datetime` Python module supported formats")
     datetime_format = StringField("DateTime format", description="Format of the `date_columns` in case they are timestamps expressed in the `datetime` Python module supported formats")
@@ -41,7 +37,7 @@ def allowed_file(filename, current_app):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
-@bp.route('/import/', methods=['GET', 'POST'])
+@bp.route('/', methods=['GET', 'POST'])
 def upload_file():
     form = ImportForm()
     task_id = ''
@@ -49,7 +45,7 @@ def upload_file():
         kwargs = prepare_args(form)
         file = request.files['csv_file']
         if file and allowed_file(file.filename, current_app):
-            local_filename = os.path.join(current_app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+            local_filename = create_file_name(current_app, file.filename)
             file.save(local_filename)
         task = insert_task.apply_async(args=[local_filename, form.csv_file.data.filename], kwargs=kwargs)
         task_id = task.id
@@ -63,44 +59,48 @@ def prepare_args(dict):
             args[key] = dict._fields[key].data
     return args
 
-@bp.route('/')
-def hello_world():
-    current_app.logger.warn('warn message')
-    flash('.............')
-    return redirect(url_for('.hello'))
-
-@bp.route('/projects', methods=['GET'])
-def projects():
-    task = long_task.apply_async()
-    return jsonify({}), 202, {'Location': url_for('dataimporter.project_status',
-                                                  taskid=task.id)}
+@bp.route('/imports/', methods=['GET'])
+def imports_list():
+    imports = get_running_tasks()
+    if imports is not None:
+        return jsonify(imports)
+    else:
+        return jsonify([])
 
 @bp.route('/import/<taskid>', methods=['GET'])
 def import_status(taskid):
     task = insert_task.AsyncResult(taskid)
-    if task.state == 'PENDING':
-        response = {
-            'state': task.state,
-            'current': task.info['current'],
-            'total': task.info['total'],
-            'status': task.info['status']
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'current': task.info['current'],
-            'total': task.info['total'],
-            'status': task.info['status']
-        }
-        if 'result' in task.info:
-            response['result'] = task.info['result']
+    if task is not None and task.state is not None and task.info is not None:
+        if task.state == 'PENDING':
+            response = {
+                'state': task.state,
+                'current': task.info['current'],
+                'total': task.info['total'],
+                'status': task.info['status']
+            }
+        elif task.state != 'FAILURE':
+            response = {
+                'state': task.state,
+                'current': task.info['current'],
+                'total': task.info['total'],
+                'status': task.info['status']
+            }
+            if 'result' in task.info:
+                response['result'] = task.info['result']
+        else:
+            # something went wrong in the background job
+            response = {
+                'state': task.state,
+                'current': 1,
+                'total': 1,
+                'status': str(task.info),  # this is the exception raised
+            }
     else:
-        # something went wrong in the background job
         response = {
-            'state': task.state,
-            'current': 1,
+            'state': 'PENDING',
+            'current': 0,
             'total': 1,
-            'status': str(task.info),  # this is the exception raised
+            'status': 'wait',  # this is the exception raised
         }
     return jsonify(response)
 

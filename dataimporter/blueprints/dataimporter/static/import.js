@@ -2,16 +2,17 @@
     $(document).ready(() => {
         var bars =   {};
         var texts = {
-            'start-upload': 'Uploading file, please don\'t close the browser window until it finishes',
-            'start-import': 'Importing data, now it\'s safe to close the browser window',
-            'import-completed': 'Import completed',
-            'error': 'Error while importing: '
+            "start-upload": '(1/2) Uploading file, please don\'t close the browser window until it finishes',
+            "get-import": '(0/2) Retrieving import information, please wait...',
+            "start-import": '(2/2) Importing data... you can close the browser window, the import will continue running in the server.',
+            "import-completed": 'Import completed',
+            "error": 'Error while importing: '
         };
 
-        function progressHandlingFunction(e) {
+        function progressHandlingFunction(e, containerId) {
             if (e.lengthComputable) {
                 var progress = e.loaded / e.total;
-                createProgressBar('pb-container').animate(progress);
+                createProgressBar(containerId).animate(progress);
             }
         };
 
@@ -27,15 +28,17 @@
             }
         };
 
-        function createProgressBar(containerId, text) {
+        function createProgressBar(containerId, text, dataset) {
             if (bars[containerId]) {
                 updateMessage(containerId, text);
                 return bars[containerId];
             }
 
             var message = text || '';
+            var dataset = dataset || '';
 
             var template = '<div class="row pb">' +
+                '<span class="pb-dataset">' + dataset + '</span> - ' +
                 '<span class="pb-info">' + message + '</span>' +
                 '<div class= "pb-container" id="' + containerId + '"></div>' +
                 '</div>';
@@ -96,15 +99,46 @@
             });
         };
 
+        function listImports() {
+            $.getJSON('/imports/', function(data) {
+                for (var key in data) {
+                    imports = data[key];
+                    imports.forEach(job => {
+                        var jobId = getId(job);
+                        var containerId = getContainerId(jobId);
+                        bars[containerId] = createProgressBar(containerId, texts['get-import'], getFileName(job));
+                        resetProgressBar(containerId);
+                        updateProgress('/import/' + jobId, containerId);
+                    });
+                }
+            });
+        };
+
+        function getId(job) {
+            return job.id;
+        };
+
+        function getContainerId(jobId) {
+            return '_' + jobId.split('-').join('_');
+        };
+
+        function getFileName(job) {
+            return job.args.split(',')[1].split("'").join("").replace("]", "").trim()
+        };
+
+        function createUniqueID() {
+            return 'pb_container' + new Date().getTime();
+        };
+
         $(document).on('submit', 'form', (event) => {
             event.preventDefault();
             var $form = $('form');
             var formData = new FormData($form[0]);
             var csrfToken = $form.find('#csrf_token').val();
 
-            var containerId = 'pb-container';
+            var containerId = createUniqueID();
             bars[containerId] = createProgressBar(containerId, texts['start-upload']);
-            resetProgressBar(containerId)
+            resetProgressBar(containerId);
 
             $.ajaxSetup({
                 beforeSend: function(xhr, settings) {
@@ -116,14 +150,16 @@
 
             // send via ajax this data
             $.ajax({
-                url: "/import/",
+                url: "/",
                 type: "POST",
 
                 // progress handling start
                 xhr: function() { // Custom XMLHttpRequest
                     var myXhr = $.ajaxSettings.xhr();
                     if (myXhr.upload) { // Check if upload property exists
-                        myXhr.upload.addEventListener('progress', progressHandlingFunction, false); // For handling the progress of the upload
+                        myXhr.upload.addEventListener('progress', function(e) {
+                            progressHandlingFunction(e, containerId);
+                        }, false); // For handling the progress of the upload
                     } else {
                         console.log("Upload progress is not supported!");
                     }
@@ -152,5 +188,7 @@
             });
             return false;
         });
+
+        listImports();
     });
 }(jQuery));
