@@ -8,6 +8,8 @@
                 elem.dispatchEvent(evt);
             }
         });
+        $('form').validationEngine('attach', { promptPosition: "right"});
+
         var bars =   {};
         var texts = {
             "start-upload": '(1/2) Uploading file, please don\'t close the browser window until it finishes',
@@ -155,6 +157,8 @@
                     }
                 }
             });
+
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
 
             // send via ajax this data
             $.ajax({

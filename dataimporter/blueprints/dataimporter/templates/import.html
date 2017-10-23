@@ -41,14 +41,14 @@
             {% from "_formhelpers.html" import render_field_file %}
             <form method="POST" enctype="multipart/form-data">
                 {{ form.csrf_token }}
-                {{ render_field(form.base_url) }}
-                {{ render_field(form.api_key) }}
-                {{ render_field(form.table_name) }}
-                {{ render_field(form.delimiter) }}
-                {{ render_field(form.columns) }}
-                {{ render_field(form.x_column) }}
-                {{ render_field(form.y_column) }}
-                {{ render_field_file(form.csv_file) }}
+                {{ render_field(form.base_url, "validate[required,custom[url]]") }}
+                {{ render_field(form.api_key, "validate[required]") }}
+                {{ render_field(form.table_name, "validate[required]") }}
+                {{ render_field(form.delimiter, "validate[required]") }}
+                {{ render_field(form.columns, "validate[required]") }}
+                {{ render_field(form.x_column, "") }}
+                {{ render_field(form.y_column, "") }}
+                {{ render_field_file(form.csv_file, "validate[required]") }}
                 <div class="fancy-collapse-panel">
                     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                         <div class="panel panel-default">
@@ -60,17 +60,17 @@
                             </div>
                             <div id="collapseOne" class="panel-collapse collapsed collapse" role="tabpanel" aria-labelledby="headingOne">
                                 <div class="panel-body">
-                                    {{ render_field(form.date_columns) }}
-                                    {{ render_field(form.srid) }}
-                                    {{ render_field(form.chunk_size) }}
-                                    {{ render_field(form.max_attempts) }}
-                                    {{ render_field(form.file_encoding) }}
-                                    {{ render_field_special(form.force_no_geometry) }}
-                                    {{ render_field(form.force_the_geom) }}
-                                    {{ render_field(form.date_format) }}
-                                    {{ render_field(form.datetime_format) }}
-                                    {{ render_field(form.float_comma_separator) }}
-                                    {{ render_field(form.float_thousand_separator) }}
+                                    {{ render_field(form.date_columns, "") }}
+                                    {{ render_field(form.srid, "validate[required,custom[onlyNumberSp]]") }}
+                                    {{ render_field(form.chunk_size, "validate[required,custom[onlyNumberSp]]") }}
+                                    {{ render_field(form.max_attempts, "validate[required,custom[onlyNumberSp]]") }}
+                                    {{ render_field(form.file_encoding, "validate[required]") }}
+                                    {{ render_field_special(form.force_no_geometry, "") }}
+                                    {{ render_field(form.force_the_geom, "") }}
+                                    {{ render_field(form.date_format, "") }}
+                                    {{ render_field(form.datetime_format, "") }}
+                                    {{ render_field(form.float_comma_separator, "") }}
+                                    {{ render_field(form.float_thousand_separator, "") }}
                                 </div>
                             </div>
                         </div>

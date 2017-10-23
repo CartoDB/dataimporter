@@ -2,8 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,700');
 
 body {
-    font-family: 'Open Sans' !important;
-    background: #eee;
+    font-family: 'Open Sans'º;
 }
 
 a,
@@ -14,8 +13,8 @@ h2 {
 
 h1,
 h2 {
-    font-family: 'Montserrat' !important;
-    font-weight: 600 !important;
+    font-family: 'Montserrat';
+    font-weight: 600;
     margin: 0;
 }
 
@@ -92,7 +91,7 @@ html input[type=button],
 input[type=reset],
 input[type=submit] {
     text-transform: uppercase;
-    border-color: none !important;
+    border-color: none;
     background: #1785FB;
     color: #fff;
 }
@@ -122,9 +121,22 @@ input[type=checkbox] + .help-block {
 }
 
 .js-fileButton {
-  top: 26px !important;
+  top: 26px;
 }
 
 #csv_file {
   margin-left: 5px;
+}
+
+.formError {
+  opacity: 1;
+}
+
+.formError .formErrorContent {
+  box-shadow: none;
+  background-color: #F24440;
+}
+
+select.error, textarea.error, input.error {
+    color: #F24440;
 }
