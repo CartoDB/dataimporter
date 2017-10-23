@@ -54,6 +54,7 @@ h2 {
 
 
 
+
 /* FANCY COLLAPSE PANEL STYLES */
 
 .fancy-collapse-panel .panel-default>.panel-heading {
@@ -115,32 +116,39 @@ input[type=checkbox]:checked {
     content: "Yes";
 }
 
-input[type=checkbox] + .help-block {
+input[type=checkbox]+.help-block {
     margin-top: -20px;
     margin-left: 30px;
 }
 
 .js-fileButton {
-  top: 26px;
+    top: 26px;
 }
 
 #csv_file {
-  margin-left: 5px;
+    margin-left: 5px;
 }
 
 .formError {
-  opacity: 1;
+    opacity: 1;
 }
 
 .formError .formErrorContent {
-  box-shadow: none;
-  background-color: #F24440;
+    box-shadow: none;
+    background-color: #F24440;
 }
 
-select.error, textarea.error, input.error {
+select.error,
+textarea.error,
+input.error,
+.pb-info.failed {
     color: #F24440;
 }
 
+.pb-info.success {
+    color: #1785FB;
+}
+
 .Header {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }

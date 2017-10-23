@@ -13,6 +13,7 @@ class ImportWorker(object):
     def __init__(self, *args, **kwargs):
         self.total = 0
         self.task = kwargs['task']
+        self.task.error_message = None
         kwargs['observer'] = self.observe
 
         self.job = InsertJob(args[0], **kwargs)
@@ -37,8 +38,10 @@ class ImportWorker(object):
                                 'status': 'running'})
 
     def error(self, error_message):
-        self.task.update_state(state='FAILURE',
-                          meta={'current': 0, 'total': self.total, 'status': error_message})
+        if not 'failed' in error_message.lower():
+            self.task.error_message = error_message
+            self.task.update_state(state='FAILURE',
+                              meta={'current': 0, 'total': self.total, 'status': error_message})
 
 def remove_file(filename):
     try:
@@ -60,8 +63,14 @@ def insert_task(self, *args, **kwargs):
         import_worker = ImportWorker(*args, **kwargs)
         import_worker.run()
     except:
-        import_worker.error('Unknown error')
+        error = 'Unknown error: ' + sys.exc_info()[0]
+        import_worker.error(error)
+        remove_file(args[0])
+        return {'current': 0, 'total': 100, 'status': error, 'result': error}
 
     remove_file(args[0])
+    if self.error_message:
+        return {'current': 0, 'total': 100, 'status': self.error_message}
+
     return {'current': 100, 'total': 100, 'status': 'Task completed!',
             'result': 'completed'}

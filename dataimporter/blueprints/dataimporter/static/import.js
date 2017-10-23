@@ -26,9 +26,9 @@
             }
         };
 
-        function updateMessage(containerId, text) {
+        function updateMessage(containerId, text, errorCls) {
             if (text) {
-                $('#' + containerId).closest('.pb').find('.pb-info').text(text);
+                $('#' + containerId).closest('.pb').find('.pb-info').addClass(errorCls).text(text);
             }
         };
 
@@ -95,10 +95,10 @@
                 if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
                     if ('result' in data) {
                         // show result
-                        updateMessage(containerId, texts['import-completed']);
+                        updateMessage(containerId, texts['import-completed'], 'success');
                     } else {
                         // something unexpected happened
-                        updateMessage(containerId, texts['error'] + data['status']);
+                        updateMessage(containerId, texts['error'] + data['status'], 'failed');
                     }
                 } else {
                     // rerun in 2 seconds
