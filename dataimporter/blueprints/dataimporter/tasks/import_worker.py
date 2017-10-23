@@ -55,9 +55,13 @@ def get_running_tasks():
 
 @celery.task(bind=True)
 def insert_task(self, *args, **kwargs):
-    kwargs['task'] = self
-    import_worker = ImportWorker(*args, **kwargs)
-    import_worker.run()
+    try:
+        kwargs['task'] = self
+        import_worker = ImportWorker(*args, **kwargs)
+        import_worker.run()
+    except:
+        import_worker.error('Unknown error')
+
     remove_file(args[0])
     return {'current': 100, 'total': 100, 'status': 'Task completed!',
             'result': 'completed'}
