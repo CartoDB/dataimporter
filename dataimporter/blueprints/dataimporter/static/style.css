@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,700');
+
 body {
-    font-family: sans-serif;
+    font-family: 'Open Sans' !important;
     background: #eee;
 }
 
@@ -11,7 +14,8 @@ h2 {
 
 h1,
 h2 {
-    font-family: 'Georgia', serif;
+    font-family: 'Montserrat' !important;
+    font-weight: 600 !important;
     margin: 0;
 }
 
@@ -39,12 +43,88 @@ h2 {
 }
 
 .pb-container {
-  margin: 20px;
-  width: 100%;
-  height: 5px;
-  position: relative;
+    margin: 20px;
+    width: 100%;
+    height: 5px;
+    position: relative;
 }
 
 .row.conf {
     margin-bottom: 50px;
+}
+
+
+
+/* FANCY COLLAPSE PANEL STYLES */
+
+.fancy-collapse-panel .panel-default>.panel-heading {
+    padding: 0;
+}
+
+.fancy-collapse-panel .panel-heading a {
+    padding: 12px 35px 12px 15px;
+    display: inline-block;
+    width: 100%;
+    background-color: #1785FB;
+    color: #ffffff;
+    position: relative;
+    text-decoration: none;
+}
+
+.fancy-collapse-panel .panel-heading a:after {
+    font-family: "FontAwesome";
+    content: "\f056";
+    position: absolute;
+    right: 20px;
+    font-size: 20px;
+    font-weight: 400;
+    top: 50%;
+    line-height: 1;
+    margin-top: -10px;
+}
+
+.fancy-collapse-panel .panel-heading a.collapsed:after {
+    content: "\f055";
+}
+
+button,
+html input[type=button],
+input[type=reset],
+input[type=submit] {
+    text-transform: uppercase;
+    border-color: none !important;
+    background: #1785FB;
+    color: #fff;
+}
+
+.form-group label {
+    padding: 10px;
+}
+
+.help-block {
+    font-size: 80%;
+}
+
+input[type=checkbox] {
+    width: 24px;
+    height: 24px;
+    content: "No";
+}
+
+input[type=checkbox]:checked {
+    background-color: #1785FB;
+    content: "Yes";
+}
+
+input[type=checkbox] + .help-block {
+    margin-top: -20px;
+    margin-left: 30px;
+}
+
+.js-fileButton {
+  top: 26px !important;
+}
+
+#csv_file {
+  margin-left: 5px;
 }

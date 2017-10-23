@@ -1,5 +1,13 @@
 (function($) {
     $(document).ready(() => {
+        $('.js-fileButton').click(e => {
+            var elem = document.getElementById('csv_file');
+            if (elem && document.createEvent) {
+                var evt = document.createEvent("MouseEvents");
+                evt.initEvent("click", true, false);
+                elem.dispatchEvent(evt);
+            }
+        });
         var bars =   {};
         var texts = {
             "start-upload": '(1/2) Uploading file, please don\'t close the browser window until it finishes',
@@ -47,7 +55,7 @@
                 strokeWidth: 4,
                 easing: 'easeInOut',
                 duration: 1400,
-                color: '#FFEA82',
+                color: '#1785FB',
                 trailColor: '#eee',
                 trailWidth: 1,
                 svgStyle: { width: '100%', height: '100%' },
@@ -63,8 +71,8 @@
                     },
                     autoStyleContainer: false
                 },
-                from: { color: '#FFEA82' },
-                to: { color: '#ED6A5A' },
+                from: { color: '#1785FB' },
+                to: { color: '#1785FB' },
                 step: (state, bar) => {
                     bar.setText(Math.round(bar.value() * 100) + ' %');
                 }
