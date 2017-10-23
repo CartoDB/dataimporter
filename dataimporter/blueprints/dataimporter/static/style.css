@@ -140,3 +140,7 @@ input[type=checkbox] + .help-block {
 select.error, textarea.error, input.error {
     color: #F24440;
 }
+
+.Header {
+  margin-bottom: 15px;
+}
