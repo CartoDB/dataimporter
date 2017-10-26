@@ -1,6 +1,6 @@
 Flask==0.12.2
 Flask-WTF==0.13.1
--e git+https://github.com/CartoDB/carto-etl@tests#egg=carto-etl
+carto-etl==1.0.0
 gunicorn==19.6.0
 celery==4.1.0
 redis==2.10.6
