@@ -70,38 +70,47 @@ def imports_list():
 @bp.route('/import/<taskid>', methods=['GET'])
 def import_status(taskid):
     task = insert_task.AsyncResult(taskid)
-    if task is not None and task.state is not None and task.info is not None:
-        if task.state == 'PENDING':
-            response = {
-                'state': task.state,
-                'current': task.info['current'],
-                'total': task.info['total'],
-                'status': task.info['status']
-            }
-        elif task.state != 'FAILURE':
-            response = {
-                'state': task.state,
-                'current': task.info['current'],
-                'total': task.info['total'],
-                'status': task.info['status']
-            }
-            if 'result' in task.info:
-                response['result'] = task.info['result']
+    try:
+        if task is not None and task.state is not None and task.info is not None:
+            if task.state == 'PENDING':
+                response = {
+                    'state': task.state,
+                    'current': task.info['current'],
+                    'total': task.info['total'],
+                    'status': task.info['status']
+                }
+            elif task.state != 'FAILURE':
+                response = {
+                    'state': task.state,
+                    'current': task.info['current'],
+                    'total': task.info['total'],
+                    'status': task.info['status']
+                }
+                if 'result' in task.info:
+                    response['result'] = task.info['result']
+            else:
+                # something went wrong in the background job
+                response = {
+                    'state': task.state,
+                    'current': 1,
+                    'total': 1,
+                    'status': str(task.info)  # this is the exception raised
+                }
         else:
-            # something went wrong in the background job
             response = {
-                'state': task.state,
-                'current': 1,
+                'state': 'PENDING',
+                'current': 0,
                 'total': 1,
-                'status': str(task.info),  # this is the exception raised
+                'status': 'wait'  # this is the exception raised
             }
-    else:
+    except Exception:
         response = {
             'state': 'PENDING',
             'current': 0,
             'total': 1,
-            'status': 'wait',  # this is the exception raised
+            'status': 'wait'  # this is the exception raised
         }
+
     return jsonify(response)
 
 @bp.app_errorhandler(404)

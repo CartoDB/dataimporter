@@ -8,7 +8,7 @@
                 elem.dispatchEvent(evt);
             }
         });
-        $('form').validationEngine('attach', { promptPosition: "right"});
+        $('form').validationEngine('attach', { promptPosition: "right" });
 
         var bars =   {};
         var texts = {
@@ -87,41 +87,65 @@
 
         function updateProgress(status_url, containerId) {
             $.getJSON(status_url, function(data) {
-                // update UI
-                progress = parseFloat(data['current'], 10) / parseFloat(data['total'], 10);
-                createProgressBar(containerId, texts['start-import']).animate(progress);
-                updateMessage(containerId, texts['start-import']);
+                    // update UI
+                    progress = parseFloat(data['current'], 10) / parseFloat(data['total'], 10);
+                    createProgressBar(containerId, texts['start-import']).animate(progress);
+                    updateMessage(containerId, texts['start-import']);
 
-                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
-                    if ('result' in data) {
-                        // show result
-                        updateMessage(containerId, texts['import-completed'], 'success');
+                    if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+                        if ('result' in data) {
+                            // show result
+                            updateMessage(containerId, texts['import-completed'], 'success');
+                        } else {
+                            // something unexpected happened
+                            updateMessage(containerId, texts['error'] + data['status'], 'failed');
+                        }
                     } else {
-                        // something unexpected happened
-                        updateMessage(containerId, texts['error'] + data['status'], 'failed');
+                        // rerun in 2 seconds
+                        setTimeout(function() {
+                            updateProgress(status_url, containerId);
+                        }, 2000);
                     }
-                } else {
-                    // rerun in 2 seconds
+                })
+                .done(function() {
+
+                })
+                .fail(function(jqxhr, textStatus, error) {
                     setTimeout(function() {
                         updateProgress(status_url, containerId);
                     }, 2000);
-                }
-            });
+
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                })
+                .always(function() {
+
+                });
         };
 
         function listImports() {
             $.getJSON('/imports/', function(data) {
-                for (var key in data) {
-                    imports = data[key];
-                    imports.forEach(job => {
-                        var jobId = getId(job);
-                        var containerId = getContainerId(jobId);
-                        bars[containerId] = createProgressBar(containerId, texts['get-import'], getFileName(job));
-                        resetProgressBar(containerId);
-                        updateProgress('/import/' + jobId, containerId);
-                    });
-                }
-            });
+                    for (var key in data) {
+                        imports = data[key];
+                        imports.forEach(job => {
+                            var jobId = getId(job);
+                            var containerId = getContainerId(jobId);
+                            bars[containerId] = createProgressBar(containerId, texts['get-import'], getFileName(job));
+                            resetProgressBar(containerId);
+                            updateProgress('/import/' + jobId, containerId);
+                        });
+                    }
+                })
+                .done(function() {
+
+                })
+                .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                })
+                .always(function() {
+
+                });
         };
 
         function getId(job) {
