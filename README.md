@@ -3,9 +3,6 @@ CARTO Dataimporter
 
 A web application to upload CSV files bigger than 1M rows or 1GB to a CARTO account
 
-- https://dataimporter.carto.io/
-- https://github.com/CartoDB/dataimporter
-
 Features
 --------
 
@@ -22,8 +19,8 @@ How it's done
 4. CSV processing made with [carto-etl](https://github.com/CartoDB/carto-etl)
 5. SQL API queries made with [carto-python](https://github.com/CartoDB/carto-python)
 
-Demo
-----
+Test bed
+--------
 
 https://dataimporter.carto.io/
 
@@ -39,6 +36,8 @@ pip install -r requirements-dev.txt
 
 Run with Docker
 ---------------
+
+https://hub.docker.com/r/carto/dataimporter/
 
 `docker run --name dataimporter -p 5000:5000 -p 6379:6379 -v ~/:/app/uploads carto/dataimporter`
 
