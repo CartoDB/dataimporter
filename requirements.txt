@@ -4,3 +4,4 @@ carto-etl==1.0.0
 gunicorn==19.6.0
 celery==4.1.0
 redis==2.10.6
+honcho==0.7.1
